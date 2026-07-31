@@ -1,6 +1,6 @@
 {
   "author": "Jerry Ho <jerrynh770@gmail.com> (https://angelrose.org)",
-  "bugs": "https://github.com/Jerrynh770/remark-math-extended/issues",
+  "bugs": "https://github.com/duz52/remark-math-extended/issues",
   "contributors": [
     "Jerry Ho <jerrynh770@gmail.com> (https://angelrose.org)",
     "Junyoung Choi <fluke8259@gmail.com> (https://rokt33r.github.io)",
@@ -25,10 +25,10 @@
   "dependencies": {
     "@types/mdast": "^4.0.0",
     "mdast-util-math": "^3.0.0",
-    "micromark-extension-math-extended": "^3.0.0",
+    "micromark-extension-math-extended": "^3.2.2",
     "unified": "^11.0.0"
   },
-  "description": "Remark plugin that parses and stringifies math including \\(...\\) and \\[...\\]",
+  "description": "remark plugin for dollar (`$C_L$`) and TeX-style (`\\(C_L\\)`, `\\[C_L\\]`) math delimiters",
   "exports": "./index.js",
   "files": [
     "index.d.ts.map",
@@ -36,6 +36,7 @@
     "index.js",
     "lib/"
   ],
+  "funding": "https://buymeacoffee.com/duz52",
   "keywords": [
     "katex",
     "latex",
@@ -50,13 +51,19 @@
   ],
   "license": "MIT",
   "name": "remark-math-extended",
-  "repository": "https://github.com/Jerrynh770/remark-math-extended",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duz52/remark-math-extended.git"
+  },
   "scripts": {
     "build": "tsc --build --clean && tsc --build && type-coverage",
     "format": "remark --frail --output --quiet -- . && prettier --log-level warn --write -- . && xo --fix",
-    "test-api": "node --conditions development test.js",
+    "format-check": "remark --frail --quiet -- . && prettier --check --log-level warn -- . && xo",
+    "test-api": "npm run test-api-dev && npm run test-api-prod",
+    "test-api-dev": "node --conditions development test.js",
+    "test-api-prod": "node --conditions production test.js",
     "test-coverage": "c8 --100 --reporter lcov -- npm run test-api",
-    "test": "npm run build && npm run format && npm run test-coverage"
+    "test": "npm run build && npm run format-check && npm run test-coverage"
   },
   "sideEffects": false,
   "type": "module",

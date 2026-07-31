@@ -5,8 +5,9 @@
 [![Downloads][downloads-badge]][downloads]
 [![Size][size-badge]][size]
 
-**[remark][]** plugin to support math (`$C_L$`) plus escaped delimiters
-like `\(C_L\)` and `\[C_L\]`.
+**[remark][]** plugin to support math with dollar delimiters (`$C_L$`),
+TeX-style inline delimiters (`\(C_L\)`), and TeX-style display delimiters
+(`\[C_L\]`).
 
 ## Contents
 
@@ -32,14 +33,14 @@ like `\(C_L\)` and `\[C_L\]`.
 ## What is this?
 
 This package is a [unified][] ([remark][]) plugin to add support for math
-syntax, including dollar-delimited expressions and escaped brackets such as
-`\(\)` and `\[\]`.
+syntax with dollar delimiters (`$…$` and `$$…$$`), TeX-style inline delimiters
+(`\(…\)`), and TeX-style display delimiters (`\[…\]`).
 You can use this to add support for parsing and serializing this syntax
 extension.
 
 As there is no spec for math in markdown, this extension follows how code
-(fenced and text) works in Commonmark, but it also handles escaped delimiters
-alongside dollars (`$`).
+(fenced and text) works in CommonMark, while also supporting TeX-style
+delimiters alongside dollars (`$`).
 
 ## When should I use this?
 
@@ -60,7 +61,7 @@ If you don’t use plugins and want to access the syntax tree, you can use
 [`mdast-util-from-markdown`][mdast-util-from-markdown] with
 [`mdast-util-math`][mdast-util-math].
 
-This plugins adds [fields on nodes][mdast-util-to-hast-fields] so that the
+This plugin adds [fields on nodes][mdast-util-to-hast-fields] so that the
 plugin responsible for turning markdown (mdast) into HTML (hast),
 [`remark-rehype`][remark-rehype], will turn text math (inline) into
 `<code class="language-math math-inline">…</code>` and flow math (block)
@@ -98,12 +99,12 @@ In browsers with [`esm.sh`][esmsh]:
 Say our document `example.md` contains:
 
 ```markdown
-Lift(\\(C_L\\)) can be determined by Lift Coefficient ($C_L$) like the following
-display equation written with escaped brackets.
+Lift(\(C_L\)) can be determined by Lift Coefficient ($C_L$) like the following
+display equation written with TeX-style brackets.
 
-\\[
-L = \\frac{1}{2} \\rho v^2 S C_L
-\\]
+\[
+L = \frac{1}{2} \rho v^2 S C_L
+\]
 ```
 
 …and our module `example.js` contains:
@@ -167,6 +168,12 @@ Configuration (TypeScript type).
 
 ###### Fields
 
+* `backslashDelimiters` (`boolean`, default: `true`)
+  — whether to support TeX-style `\( ... \)` inline math and `\[ ... \]`
+  display math.
+  These sequences are character escapes in CommonMark, so enabling this option
+  changes their normal Markdown meaning.
+  Set this option to `false` when CommonMark-compatible escapes are preferred.
 * `singleDollarTextMath` (`boolean`, default: `true`)
   — whether to support text math (inline) with a single dollar.
   Single dollars work in Pandoc and many other places, but often interfere
@@ -180,6 +187,38 @@ places.
 Notably, GitHub currently has a really weird crappy client-side regex-based
 thing.
 But on your own (math-heavy?) site it can be great!
+
+Use `\( ... \)` for inline TeX-style math:
+
+```markdown
+The lift coefficient is \(C_L\).
+```
+
+Use `\[ ... \]` for TeX-style display math.
+The opening delimiter must occur where a block can start.
+The closing delimiter must be followed only by spaces and a line ending or the
+end of the document.
+The content and closing delimiter can be on one line:
+
+```markdown
+\[L = \frac{1}{2} \rho v^2 S C_L\]
+```
+
+They can also span lines:
+
+```markdown
+\[
+L = \frac{1}{2} \rho v^2 S C_L
+\]
+```
+
+A matching `\]` is required.
+Without one, the opening `\[` is treated as normal Markdown instead of
+consuming the remainder of the document.
+
+> 👉 **Compatibility note**: CommonMark normally interprets `\(` and `\[`
+> as character escapes.
+> Pass `backslashDelimiters: false` to preserve that behavior.
 
 Instead of a syntax extension to markdown, you can also use fenced code with an
 info string of `math`:
@@ -196,6 +235,8 @@ This plugin integrates with [`remark-rehype`][remark-rehype].
 When markdown (mdast) is turned into HTML (hast) the math nodes are turned
 into `<code class="language-math math-inline">…</code>` and
 `<pre><code class="language-math math-display">…</code></pre>` elements.
+TeX-style parentheses produce inline math and TeX-style brackets produce
+display math.
 
 ## CSS
 
@@ -210,6 +251,11 @@ See the syntax docs for [`micromark-extension-math-extended`][mme-syntax].
 ## Syntax tree
 
 See the syntax tree docs for [`mdast-util-math`][mdast-util-math-syntax].
+
+This plugin uses `mdast-util-math` to serialize math nodes.
+Its serializer emits dollar delimiters, so parsing and then serializing
+TeX-style delimiters preserves the math value and display/inline kind but
+changes `\( ... \)` to `$...$` and `\[ ... \]` to `$$...$$`.
 
 ## Types
 
@@ -287,7 +333,7 @@ abide by its terms.
 
 [MIT][license] © [Junyoung Choi][remark-math-author].
 
-Extended modifications © 2025 [Jerry Ho][author].
+Extended modifications © 2025–2026 [Jerry Ho][author].
 See [license][].
 
 <!-- Definitions -->
@@ -300,17 +346,17 @@ See [license][].
 
 [author]: https://angelrose.org
 
-[build]: https://github.com/Jerrynh770/remark-math-extended/actions
+[build]: https://github.com/duz52/remark-math-extended/actions
 
-[build-badge]: https://github.com/Jerrynh770/remark-math-extended/actions/workflows/main.yml/badge.svg
+[build-badge]: https://github.com/duz52/remark-math-extended/actions/workflows/main.yml/badge.svg
 
 [coc]: https://github.com/remarkjs/.github/blob/main/code-of-conduct.md
 
 [contributing]: https://github.com/remarkjs/.github/blob/main/contributing.md
 
-[coverage]: https://codecov.io/github/Jerrynh770/remark-math-extended
+[coverage]: https://codecov.io/github/duz52/remark-math-extended
 
-[coverage-badge]: https://img.shields.io/codecov/c/github/Jerrynh770/remark-math-extended.svg
+[coverage-badge]: https://img.shields.io/codecov/c/github/duz52/remark-math-extended.svg
 
 [downloads]: https://www.npmjs.com/package/remark-math-extended
 
@@ -324,7 +370,7 @@ See [license][].
 
 [health]: https://github.com/remarkjs/.github
 
-[license]: https://github.com/Jerrynh770/remark-math-extended/blob/main/license
+[license]: https://github.com/duz52/remark-math-extended/blob/main/license
 
 [mdast-util-from-markdown]: https://github.com/syntax-tree/mdast-util-from-markdown
 
@@ -336,9 +382,9 @@ See [license][].
 
 [micromark]: https://github.com/micromark/micromark
 
-[micromark-extension-math-extended]: https://github.com/Jerrynh770/micromark-extension-math-extended
+[micromark-extension-math-extended]: https://github.com/duz52/micromark-extension-math-extended
 
-[mme-syntax]: https://github.com/Jerrynh770/micromark-extension-math-extended#syntax
+[mme-syntax]: https://github.com/duz52/micromark-extension-math-extended#syntax
 
 [npm]: https://docs.npmjs.com/cli/install
 
