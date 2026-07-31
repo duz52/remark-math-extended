@@ -68,6 +68,64 @@ test('remarkMath', async function (t) {
   })
 
   await t.test(
+    'should parse TeX-style inline and display math',
+    async function () {
+      assert.equal(
+        String(
+          await toHtml.process(
+            'Math \\(\\alpha\\)\n\n\\[\\beta+\\gamma\\]\n\nAfter'
+          )
+        ),
+        '<p>Math <code class="language-math math-inline">\\alpha</code></p>\n' +
+          '<pre><code class="language-math math-display">\\beta+\\gamma</code></pre>\n' +
+          '<p>After</p>'
+      )
+    }
+  )
+
+  await t.test(
+    'should support TeX line-break options in display math',
+    async function () {
+      assert.equal(
+        String(
+          await toHtml.process(
+            '\\[\n\\begin{cases}x \\\\[1em] y\\end{cases}\n\\]'
+          )
+        ),
+        '<pre><code class="language-math math-display">' +
+          '\\begin{cases}x \\\\[1em] y\\end{cases}' +
+          '</code></pre>'
+      )
+    }
+  )
+
+  await t.test(
+    'should fall back to normal Markdown for an unclosed display delimiter',
+    async function () {
+      assert.equal(
+        String(await toHtml.process('\\[not closed\n\nAfter')),
+        '<p>[not closed</p>\n<p>After</p>'
+      )
+    }
+  )
+
+  await t.test(
+    'should support `backslashDelimiters: false`',
+    async function () {
+      const commonmark = unified()
+        .use(remarkParse)
+        .use(remarkMath, {backslashDelimiters: false})
+        .use(remarkRehype)
+        .use(rehypeStringify)
+
+      assert.equal(
+        String(await commonmark.process('Inline \\(x\\).\n\n\\[y\\]')),
+        '<p>Inline (x).</p>\n<p>[y]</p>'
+      )
+    }
+  )
+
+  await t.test(
     'should ignore an escaped opening dollar sign',
     async function () {
       const tree = unified()
@@ -454,6 +512,22 @@ test('remarkMath', async function (t) {
       'Math $\\alpha$\n\n$$\n\\beta+\\gamma\n$$\n'
     )
   })
+
+  await t.test(
+    'should serialize TeX-style delimiters as dollar delimiters',
+    async function () {
+      assert.equal(
+        String(
+          await unified()
+            .use(remarkParse)
+            .use(remarkStringify)
+            .use(remarkMath)
+            .process('Inline \\(x\\).\n\n\\[y\\]\n')
+        ),
+        'Inline $x$.\n\n$$\ny\n$$\n'
+      )
+    }
+  )
 
   await t.test(
     'should support `singleDollarTextMath: false` (1)',
