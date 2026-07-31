@@ -67,7 +67,7 @@
   },
   "sideEffects": false,
   "type": "module",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "xo": {
     "prettier": true,
     "rules": {
